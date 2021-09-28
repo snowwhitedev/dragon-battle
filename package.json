@@ -1,0 +1,49 @@
+{
+  "name": "dragoncrypto-contracts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx hardhat test",
+    "test:local": "npx hardhat test --network hardhat",
+    "compile": "npx hardhat compile",
+    "mainnet:deploy": "hardhat --network mainnet deploy",
+    "mainnet:verify": "hardhat --network mainnet etherscan-verify --solc-input",
+    "mainnet:export": "hardhat --network mainnet export --export exports/mainnet.json",
+    "ropsten:deploy": "hardhat --network ropsten deploy",
+    "ropsten:verify": "hardhat --network ropsten etherscan-verify --solc-input",
+    "ropsten:export": "hardhat --network ropsten export --export exports/ropsten.json",
+    "rinkeby:deploy": "hardhat --network rinkeby deploy",
+    "rinkeby:verify": "hardhat --network rinkeby etherscan-verify --solc-input",
+    "rinkeby:export": "hardhat --network rinkeby export --export exports/rinkeby.json",
+    "prettier": "prettier --write test/**/*.js && prettier --write scripts/**/*.js && prettier --write contracts/**/*.sol"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sam-thewise/dragoncrypto-contracts.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sam-thewise/dragoncrypto-contracts/issues"
+  },
+  "homepage": "https://github.com/sam-thewise/dragoncrypto-contracts#readme",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-etherscan": "^2.1.5",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "@openzeppelin/contracts": "^4.3.0",
+    "chai": "^4.3.4",
+    "dotenv": "^10.0.0",
+    "ethereum-waffle": "^3.4.0",
+    "ethers": "^5.4.5",
+    "hardhat": "^2.6.1",
+    "hardhat-contract-sizer": "^2.0.3",
+    "hardhat-deploy": "^0.9.0",
+    "hardhat-deploy-ethers": "^0.3.0-beta.10",
+    "hardhat-gas-reporter": "^1.0.4",
+    "prettier": "^2.3.2",
+    "prettier-plugin-solidity": "^1.0.0-beta.17"
+  }
+}

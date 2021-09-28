@@ -1,0 +1,17 @@
+DGNG (0% deposit) (50X multiplier) (also an auto compounding vault)
+WETH (4% deposit) (5X multiplier)
+WBTC (4% deposit) (5X multiplier)
+WMATIC (4% deposit) (5X multiplier)
+USDC (4% deposit) (5X multiplier)
+DAI (4% deposit) (5X multiplier)
+LINK (3% deposit) (7.5X multiplier)
+POLYPUP BALL (3% deposit) (7.5X multiplier)
+POLYPUP BONE (4% deposit) (5X multiplier)
+POLYDOGE (4% deposit) (5X multiplier)
+
+Farms (QUICKSWAP LP Pools)
+
+DGNG/WMATIC (0% deposit) (100X multiplier) (also an auto compounding vault)
+DGNG/USDC (0% deposit) (100X multiplier) (also an auto compounding vault)
+DAI/USDC (4% deposit) (10X multiplier)
+POLYPUP BALL/USDC (3% deposit) (15X multiplier)
