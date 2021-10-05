@@ -47,25 +47,25 @@ module.exports = {
     },
   },
   networks: {
+    // hardhat: {
+    //   allowUnlimitedContractSize: true,
+    //   settings: {
+    //     optimizer: {
+    //       enabled: true,
+    //       runs: 9999,
+    //     },
+    //   },
+    //   forking: {
+    //     url: "https://polygon-mainnet.g.alchemy.com/v2/YH7aKkMfvT_Mq0qYZOPGdsr0dM0GC4xe",
+    //     enabled: true,
+    //     // blockNumber: 18899628,
+    //     blockNumber: 5931780,
+    //   },
+    //   gasPrice: parseInt(utils.parseUnits("50", "gwei")),
+    // },
     hardhat: {
-      allowUnlimitedContractSize: true,
-      settings: {
-        optimizer: {
-          enabled: true,
-          runs: 9999,
-        },
-      },
-      forking: {
-        url: "https://polygon-mainnet.g.alchemy.com/v2/YH7aKkMfvT_Mq0qYZOPGdsr0dM0GC4xe",
-        enabled: true,
-        // blockNumber: 18899628,
-        blockNumber: 5931780,
-      },
       gasPrice: parseInt(utils.parseUnits("50", "gwei")),
     },
-    // hardhat: {
-    //   gasPrice: parseInt(utils.parseUnits("50", "gwei"))
-    // },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
       accounts,

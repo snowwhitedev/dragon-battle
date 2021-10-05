@@ -1,4 +1,5 @@
 const { expect } = require("chai");
+// const { providers } = require("ethers");
 const { ethers } = require("hardhat");
 const {
   DGNG_PRE_MINT,
@@ -7,6 +8,7 @@ const {
 } = require("../scripts/shared");
 
 const DGNG_PER_BLOCK = getBigNumber(5, 16); // 0.05 dgng per block
+const DGNG_REWARD_PERIOD = 15; // reward every 15 seconds
 
 describe("MasterChef", function () {
   before(async function () {
@@ -93,20 +95,38 @@ describe("MasterChef", function () {
         this.masterChef.address,
         getBigNumber(1000000000000000)
       );
-      const log1 = await this.masterChef.deposit(0, getBigNumber(1));
+      const log1 = await (
+        await this.masterChef.deposit(0, getBigNumber(1))
+      ).wait();
+
       await advanceBlock();
+      const currentDate = new Date();
+      const afterThreeHours = new Date(
+        currentDate.setDate(currentDate.getHours() + 3) //After 3 hours
+      );
+      const afterThreeHoursTimeStampUTC =
+        new Date(afterThreeHours.toUTCString()).getTime() / 1000;
+      network.provider.send("evm_setNextBlockTimestamp", [
+        afterThreeHoursTimeStampUTC,
+      ]);
+      await network.provider.send("evm_mine");
       const log2 = await this.masterChef.updatePool(0);
       await advanceBlock();
 
+      const block1 = await ethers.provider.getBlock(log1.blockNumber);
+      const block2 = await ethers.provider.getBlock(log2.blockNumber);
+
       const expectedDGNG = DGNG_PER_BLOCK.mul(
-        log2.blockNumber + 1 - log1.blockNumber
+        ~~((block2.timestamp - block1.timestamp) / DGNG_REWARD_PERIOD)
       )
         .mul(975)
         .div(1000);
+
       const pendingDGNG = await this.masterChef.pendingDgng(
         0,
         this.signers[0].address
       );
+
       expect(expectedDGNG).to.be.equal(pendingDGNG);
     });
   });
@@ -151,40 +171,11 @@ describe("MasterChef", function () {
       await advanceBlock();
       const withdrawLog = await this.masterChef.withdraw(0, 0);
 
-      const expectedDGNG = DGNG_PER_BLOCK.mul(
-        withdrawLog.blockNumber - depositLog.blockNumber
-      )
-        .mul(975)
-        .div(1000);
-
-      const dgngBalanceAfter = await this.dgng.balanceOf(
-        this.signers[0].address
-      );
-
-      expect(expectedDGNG.add(dgngBalanceBefore)).to.be.equal(dgngBalanceAfter);
-    });
-  });
-
-  describe("EmergencyWithdraw", function () {
-    beforeEach(async function () {});
-
-    it("Withdraw 0 amount", async function () {
-      await this.masterChef.add(5000, this.dgng.address, 0, false);
-      await this.dgng.approve(
-        this.masterChef.address,
-        getBigNumber(1000000000000000)
-      );
-      const depositLog = await this.masterChef.deposit(0, getBigNumber(1000));
-
-      await advanceBlock();
-      const dgngBalanceBefore = await this.dgng.balanceOf(
-        this.signers[0].address
-      );
-      await advanceBlock();
-      const withdrawLog = await this.masterChef.withdraw(0, 0);
+      const block1 = await ethers.provider.getBlock(withdrawLog.blockNumber);
+      const block2 = await ethers.provider.getBlock(depositLog.blockNumber);
 
       const expectedDGNG = DGNG_PER_BLOCK.mul(
-        withdrawLog.blockNumber - depositLog.blockNumber
+        ~~((block2.timestamp - block1.timestamp) / DGNG_REWARD_PERIOD)
       )
         .mul(975)
         .div(1000);
