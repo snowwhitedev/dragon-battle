@@ -21,7 +21,7 @@ describe("Vault", function () {
       "StrategyMasterChef"
     );
     this.StrategyMasterChefLP = await ethers.getContractFactory(
-      "StrategtMasterChefLP"
+      "StrategyMasterChefLP"
     );
 
     this.signers = await ethers.getSigners();
