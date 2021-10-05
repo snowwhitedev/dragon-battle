@@ -32,7 +32,7 @@ contract MasterChef is Ownable, ReentrancyGuard {
         //   pending reward = (user.amount * pool.accDgngPerShare) - user.rewardDebt
         //
         // Whenever a user deposits or withdraws LP tokens to a pool. Here's what happens:
-        //   1. The pool's `accDgngPerShare` (and `lastRewardBlock`) gets updated.
+        //   1. The pool's `accDgngPerShare` (and `lastRewardTime`) gets updated.
         //   2. User receives the pending reward sent to his/her address.
         //   3. User's `amount` gets updated.
         //   4. User's `rewardDebt` gets updated.
@@ -61,7 +61,7 @@ contract MasterChef is Ownable, ReentrancyGuard {
     struct PoolInfo {
         IERC20 lpToken; // Address of LP token contract.
         uint256 allocPoint; // How many allocation points assigned to this pool. DragonGols to distribute per block.
-        uint256 lastRewardBlock; // Last block number that DragonGols distribution occurs.
+        uint256 lastRewardTime; // Last block timestamp that DragonGols distribution occurs.
         uint256 accDgngPerShare; // Accumulated DrgonGols per share, times 1e12. See below.
         uint16 depositFeeBP; // Deposit fee in basis points 10000 - 100%
         uint256 lpSupply;
@@ -92,10 +92,10 @@ contract MasterChef is Ownable, ReentrancyGuard {
     mapping(uint256 => mapping(address => UserInfo)) public userInfo;
     // Total allocation points. Must be the sum of all allocation points in all pools.
     uint256 public totalAllocPoint = 0;
-    // The block number when Dragon mining starts.
-    uint256 public startBlock;
-    // The block number when Dragon mining ends.
-    uint256 public emmissionEndBlock = type(uint256).max;
+    // The time when Dragon mining starts.
+    uint256 public startTime;
+    // The time when Dragon mining ends.
+    uint256 public emmissionEndTime = type(uint256).max;
 
     address public devWallet;
 
@@ -111,14 +111,14 @@ contract MasterChef is Ownable, ReentrancyGuard {
         address _dgng,
         address _DRAGON_UTILITY,
         address _feeAddress,
-        uint256 _startBlock,
+        uint256 _startTime,
         uint256 _dgngPerBlock,
         address _devWallet
     ) {
         dgng = _dgng;
         DRAGON_UTILITY = _DRAGON_UTILITY;
         feeAddress = _feeAddress;
-        startBlock = _startBlock;
+        startTime = _startTime;
         dgngPerBlock = _dgngPerBlock;
         devWallet = _devWallet;
     }
@@ -147,7 +147,7 @@ contract MasterChef is Ownable, ReentrancyGuard {
         if (_withUpdate) {
             massUpdatePools();
         }
-        uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
+        uint256 lastRewardTime = block.timestamp > startTime ? block.timestamp : startTime;
         totalAllocPoint = totalAllocPoint + _allocPoint;
         poolExistence[_lpToken] = true;
 
@@ -155,7 +155,7 @@ contract MasterChef is Ownable, ReentrancyGuard {
             PoolInfo({
                 lpToken: _lpToken,
                 allocPoint: _allocPoint,
-                lastRewardBlock: lastRewardBlock,
+                lastRewardTime: lastRewardTime,
                 accDgngPerShare: 0,
                 depositFeeBP: _depositFeeBP,
                 lpSupply: 0
@@ -185,11 +185,12 @@ contract MasterChef is Ownable, ReentrancyGuard {
 
     // Return reward multiplier over the given _from to _to block.
     function getMultiplier(uint256 _from, uint256 _to) public view returns (uint256) {
-        // As we set the multiplier to 0 here after emmissionEndBlock
+        // As we set the multiplier to 0 here after emmissionEndTime
         // deposits aren't blocked after farming ends.
-        if (_from > emmissionEndBlock) return 0;
-        if (_to > emmissionEndBlock) return emmissionEndBlock - _from;
-        else return _to - _from;
+        // reward every 15 seconds
+        if (_from > emmissionEndTime) return 0;
+        if (_to > emmissionEndTime) return (emmissionEndTime - _from) / 15;
+        else return (_to - _from) / 15;
     }
 
     // View function to see pending DragonGols on frontend.
@@ -197,8 +198,8 @@ contract MasterChef is Ownable, ReentrancyGuard {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
         uint256 accDgngPerShare = pool.accDgngPerShare;
-        if (block.number > pool.lastRewardBlock && pool.lpSupply != 0) {
-            uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
+        if (block.timestamp > pool.lastRewardTime && pool.lpSupply != 0) {
+            uint256 multiplier = getMultiplier(pool.lastRewardTime, block.timestamp);
             uint256 dgngReward = (multiplier * dgngPerBlock * pool.allocPoint) / totalAllocPoint;
             uint256 dgngRewardUser = (dgngReward * 975) / 1000;
             accDgngPerShare = accDgngPerShare + ((dgngRewardUser * 1e12) / pool.lpSupply);
@@ -218,16 +219,16 @@ contract MasterChef is Ownable, ReentrancyGuard {
     // Update reward variables of the given pool to be up-to-date.
     function updatePool(uint256 _pid) public {
         PoolInfo storage pool = poolInfo[_pid];
-        if (block.number <= pool.lastRewardBlock) {
+        if (block.timestamp <= pool.lastRewardTime) {
             return;
         }
 
         if (pool.lpSupply == 0 || pool.allocPoint == 0) {
-            pool.lastRewardBlock = block.number;
+            pool.lastRewardTime = block.timestamp;
             return;
         }
 
-        uint256 multiplier = getMultiplier(pool.lastRewardBlock, block.number);
+        uint256 multiplier = getMultiplier(pool.lastRewardTime, block.timestamp);
         uint256 dgngReward = (multiplier * dgngPerBlock * pool.allocPoint) / totalAllocPoint;
 
         // This shouldn't happen, but just in case we stop rewards.
@@ -243,11 +244,11 @@ contract MasterChef is Ownable, ReentrancyGuard {
         }
 
         // The first time we reach DragonGol's max supply we solidify the end of farming.
-        if (IERC20(dgng).totalSupply() >= dgngMaximumSupply && emmissionEndBlock == type(uint256).max)
-            emmissionEndBlock = block.number;
+        if (IERC20(dgng).totalSupply() >= dgngMaximumSupply && emmissionEndTime == type(uint256).max)
+            emmissionEndTime = block.timestamp;
 
         pool.accDgngPerShare = pool.accDgngPerShare + ((dgngRewardUser * 1e12) / pool.lpSupply);
-        pool.lastRewardBlock = block.number;
+        pool.lastRewardTime = block.timestamp;
     }
 
     // Deposit LP tokens to MasterChef for DragonGol allocation.
@@ -337,13 +338,13 @@ contract MasterChef is Ownable, ReentrancyGuard {
         emit SetFeeAddress(msg.sender, _feeAddress);
     }
 
-    function setStartBlock(uint256 _newStartBlock) external onlyOwner {
-        require(poolInfo.length == 0, "no changing start block after pools have been added");
-        require(block.number < startBlock, "cannot change start block if sale has already commenced");
-        require(block.number < _newStartBlock, "cannot set start block in the past");
-        startBlock = _newStartBlock;
+    function setStartTime(uint256 _newStartTime) external onlyOwner {
+        require(poolInfo.length == 0, "no changing startTime after pools have been added");
+        require(block.timestamp < startTime, "cannot change start block if sale has already commenced");
+        require(block.timestamp < _newStartTime, "cannot set start block in the past");
+        startTime = _newStartTime;
 
-        emit UpdateStartBlock(startBlock);
+        emit UpdateStartBlock(startTime);
     }
 
     function massUpdatePoolDragonNests() public {
