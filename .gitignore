@@ -106,6 +106,9 @@ dist
 node_modules
 .env
 
-#Hardhat files
+# Hardhat files
 cache
 artifacts
+
+# package-lock.json
+package-lock.json
