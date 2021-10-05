@@ -164,4 +164,36 @@ describe("MasterChef", function () {
       expect(expectedDGNG.add(dgngBalanceBefore)).to.be.equal(dgngBalanceAfter);
     });
   });
+
+  describe("EmergencyWithdraw", function () {
+    beforeEach(async function () {});
+
+    it("Withdraw 0 amount", async function () {
+      await this.masterChef.add(5000, this.dgng.address, 0, false);
+      await this.dgng.approve(
+        this.masterChef.address,
+        getBigNumber(1000000000000000)
+      );
+      const depositLog = await this.masterChef.deposit(0, getBigNumber(1000));
+
+      await advanceBlock();
+      const dgngBalanceBefore = await this.dgng.balanceOf(
+        this.signers[0].address
+      );
+      await advanceBlock();
+      const withdrawLog = await this.masterChef.withdraw(0, 0);
+
+      const expectedDGNG = DGNG_PER_BLOCK.mul(
+        withdrawLog.blockNumber - depositLog.blockNumber
+      )
+        .mul(975)
+        .div(1000);
+
+      const dgngBalanceAfter = await this.dgng.balanceOf(
+        this.signers[0].address
+      );
+
+      expect(expectedDGNG.add(dgngBalanceBefore)).to.be.equal(dgngBalanceAfter);
+    });
+  });
 });
