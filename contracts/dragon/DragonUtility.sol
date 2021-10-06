@@ -46,7 +46,7 @@ contract DragonUtility is ERC721URIStorage, Ownable, ReentrancyGuard {
         require(balanceOf(_msgSender()) < 2, "Dragon:Forbidden");
         TransferHelper.safeTransferFrom(USDC, _msgSender(), _devWallet, _itemCost);
 
-        safeTransferFrom(msg.sender, address(this), _tokenId);
+        _safeTransfer(address(this), msg.sender, _tokenId, "");
     }
 
     function setItemCost(uint256 _cost) external onlyOwner {

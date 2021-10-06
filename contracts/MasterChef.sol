@@ -54,7 +54,7 @@ contract MasterChef is Ownable, ReentrancyGuard {
     }
 
     mapping(uint256 => PoolDragonNestInfo) public poolDragonNestInfo; // poolId => poolDragonNestInfo
-    mapping(uint256 => mapping(uint256 => uint256)) public dragonNestInfo; // poolId => (nestId => rewardDebt)
+    mapping(uint256 => mapping(uint256 => uint256)) public dragonNestInfo; // poolId => (nestId => rewardDebt), nestId: NFT tokenId
     mapping(uint256 => address) nestSupporters; // tokenId => nest supporter;
     uint256 public nestSupportersLength;
 
@@ -254,7 +254,9 @@ contract MasterChef is Ownable, ReentrancyGuard {
             uint256 depositFee = (_amount * pool.depositFeeBP) / 10000;
             // We split this fee to feeAddress and Dragon Nest supporters - 90% 10%
             pool.lpToken.safeTransfer(feeAddress, (depositFee * 9000) / 10000);
-            poolDragonNestInfo[_pid].pendingDepFee = (depositFee * 1000) / 10000;
+
+            poolDragonNestInfo[_pid].pendingDepFee += (depositFee * 1000) / 10000;
+
             user.amount = user.amount + _amount - depositFee;
             pool.lpSupply = pool.lpSupply + _amount - depositFee;
         } else {
@@ -332,7 +334,6 @@ contract MasterChef is Ownable, ReentrancyGuard {
     function setDgngPerBlock(uint256 _dgngPerBlock) external onlyOwner {
         dgngPerBlock = _dgngPerBlock;
         emit SetDgngPerBlock(_dgngPerBlock);
-
     }
 
     function setEmissionEndTime(uint256 _emissionEndTime) external onlyOwner {
@@ -354,7 +355,7 @@ contract MasterChef is Ownable, ReentrancyGuard {
         uint256 _pendingDepFee = poolDragonNest.pendingDepFee;
 
         if (_pendingDepFee > 0) {
-            poolDragonNest.accDepFeePerShare = _pendingDepFee / nestSupportersLength;
+            poolDragonNest.accDepFeePerShare += _pendingDepFee / nestSupportersLength;
             poolDragonNest.pendingDepFee = 0;
         }
     }
@@ -374,11 +375,12 @@ contract MasterChef is Ownable, ReentrancyGuard {
         PoolDragonNestInfo storage _poolDragonNestInfo = poolDragonNestInfo[_pid];
         uint256 _pendingDepFee = _poolDragonNestInfo.pendingDepFee;
 
-        if (_pendingDepFee > 0) {
-            _poolDragonNestInfo.accDepFeePerShare = _pendingDepFee / nestSupportersLength;
+        uint256 accDepFeePerShare = _poolDragonNestInfo.accDepFeePerShare;
+        if (_pendingDepFee > 0 && nestSupportersLength > 0) {
+            _poolDragonNestInfo.accDepFeePerShare = accDepFeePerShare + _pendingDepFee / nestSupportersLength;
             _poolDragonNestInfo.pendingDepFee = 0;
         }
-        dragonNestInfo[_pid][_tokenId] = 0;
+        dragonNestInfo[_pid][_tokenId] = accDepFeePerShare;
     }
 
     function stakeDragonUtility(uint256 tokenId) external nonReentrant {
@@ -389,9 +391,20 @@ contract MasterChef is Ownable, ReentrancyGuard {
         nestSupportersLength++;
     }
 
-    function withdrawDragonUtility(uint256 tokenId) external {
+    function withdrawDragonUtility(uint256 tokenId) external nonReentrant {
         require(nestSupporters[tokenId] == msg.sender, "Dragon: Forbidden");
-        // TODO we should do transfer in for loop? Okay?
+        nestSupporters[tokenId] = address(0);
+        massUpdatePoolDragonNests();
+        // transfer in for loop? It's Okay. We should do with a few number of pools
+        uint256 len = poolInfo.length;
+        for (uint256 pid = 0; pid < len; pid++) {
+            PoolInfo storage pool = poolInfo[pid];
+            pool.lpToken.safeTransfer(
+                address(msg.sender),
+                poolDragonNestInfo[pid].accDepFeePerShare - dragonNestInfo[pid][tokenId]
+            );
+            dragonNestInfo[pid][tokenId] = 0;
+        }
 
         IERC721 _dragonUtility = IERC721(DRAGON_UTILITY);
         _dragonUtility.safeTransferFrom(address(this), msg.sender, tokenId);
