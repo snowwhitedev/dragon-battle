@@ -1,4 +1,4 @@
-const { expect } = require("chai");
+const { expect, assert } = require("chai");
 // const { providers } = require("ethers");
 const { ethers } = require("hardhat");
 const {
@@ -185,6 +185,75 @@ describe("MasterChef", function () {
       );
 
       expect(expectedDGNG.add(dgngBalanceBefore)).to.be.equal(dgngBalanceAfter);
+    });
+
+    // TODO should revert invalid pool
+  });
+
+  describe("EmergencyWithdraw", function () {
+    beforeEach(async function () {});
+
+    it("EmergencyWithdraw 0 amount", async function () {
+      await this.masterChef.add(5000, this.dgng.address, 0, false);
+      await this.dgng.approve(
+        this.masterChef.address,
+        getBigNumber(1000000000000000)
+      );
+      const depositLog = await this.masterChef.deposit(0, getBigNumber(1000));
+
+      await advanceBlock();
+      const dgngBalanceBefore = await this.dgng.balanceOf(
+        this.signers[0].address
+      );
+      await advanceBlock();
+
+      const userInfoBefore = await this.masterChef.userInfo(
+        0,
+        this.signers[0].address
+      );
+      // const withdrawLog = await this.masterChef.emergencyWithdraw(0);
+      await expect(this.masterChef.emergencyWithdraw(0))
+        .to.emit(this.masterChef, "EmergencyWithdraw")
+        .withArgs(this.signers[0].address, 0, userInfoBefore.amount);
+
+      const userInfoAfter = await this.masterChef.userInfo(
+        0,
+        this.signers[0].address
+      );
+      expect(userInfoAfter.amount).to.be.equal(0);
+      expect(userInfoAfter.rewardDebt).to.be.equal(0);
+    });
+  });
+
+  describe("stakeDragonUtility", function () {
+    beforeEach(async function () {
+      await this.masterChef.add(5000, this.dgng.address, 0, false);
+      await this.dgng.approve(
+        this.masterChef.address,
+        getBigNumber(1000000000000000)
+      );
+      await this.dragonUtility.mintPlank("https://xxxxx");
+      await this.dragonUtility.buyDragonUtility(1);
+
+      this.usedUtilityNFTId = 1;
+    });
+
+    it("Should stake dragon utility", async function () {
+      const dragBalanceOfUserBefore = await this.dragonUtility.balanceOf(
+        this.signers[0].address
+      );
+      expect(dragBalanceOfUserBefore).to.be.equal(getBigNumber(1, 0));
+      await this.dragonUtility.approve(
+        this.masterChef.address,
+        this.usedUtilityNFTId
+      );
+      await this.masterChef.stakeDragonUtility(this.usedUtilityNFTId);
+      const dragBalanceOfUserAfter = await this.dragonUtility.balanceOf(
+        this.signers[0].address
+      );
+      expect(dragBalanceOfUserAfter).to.be.equal(
+        dragBalanceOfUserBefore.sub(1)
+      );
     });
   });
 });
