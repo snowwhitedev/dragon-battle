@@ -38,25 +38,6 @@ contract MasterChef is Ownable, ReentrancyGuard {
         //   4. User's `rewardDebt` gets updated.
     }
 
-    /**
-    * DGNG (0% deposit) (50X multiplier) (also an auto compounding vault)
-    * WETH (4% deposit) (5X multiplier)
-    * WBTC (4% deposit) (5X multiplier)
-    * WMATIC (4% deposit) (5X multiplier)
-    * USDC (4% deposit) (5X multiplier)
-    * DAI (4% deposit) (5X multiplier)
-    * LINK (3% deposit) (7.5X multiplier)
-    * POLYPUP BALL (3% deposit) (7.5X multiplier)
-    * POLYPUP BONE (4% deposit) (5X multiplier)
-    * POLYDOGE (4% deposit) (5X multiplier)
-
-    * Farms (QUICKSWAP LP Pools)
-
-    * DGNG/WMATIC (0% deposit) (100X multiplier) (also an auto compounding vault)
-    * DGNG/USDC (0% deposit) (100X multiplier) (also an auto compounding vault)
-    * DAI/USDC (4% deposit) (10X multiplier)
-    * POLYPUP BALL/USDC (3% deposit) (15X multiplier)
-    */
     // Info of each pool.
     struct PoolInfo {
         IERC20 lpToken; // Address of LP token contract.
@@ -95,7 +76,7 @@ contract MasterChef is Ownable, ReentrancyGuard {
     // The time when Dragon mining starts.
     uint256 public startTime;
     // The time when Dragon mining ends.
-    uint256 public emmissionEndTime = type(uint256).max;
+    uint256 public emissionEndTime = type(uint256).max;
 
     address public devWallet;
 
@@ -106,6 +87,8 @@ contract MasterChef is Ownable, ReentrancyGuard {
     event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
     event SetFeeAddress(address indexed user, address indexed newAddress);
     event UpdateStartBlock(uint256 newStartBlock);
+    event SetDgngPerBlock(uint256 amount);
+    event SetEmissionEndTime(uint256 emissionEndTime);
 
     constructor(
         address _dgng,
@@ -185,11 +168,11 @@ contract MasterChef is Ownable, ReentrancyGuard {
 
     // Return reward multiplier over the given _from to _to block.
     function getMultiplier(uint256 _from, uint256 _to) public view returns (uint256) {
-        // As we set the multiplier to 0 here after emmissionEndTime
+        // As we set the multiplier to 0 here after emissionEndTime
         // deposits aren't blocked after farming ends.
         // reward every 15 seconds
-        if (_from > emmissionEndTime) return 0;
-        if (_to > emmissionEndTime) return (emmissionEndTime - _from) / 15;
+        if (_from > emissionEndTime) return 0;
+        if (_to > emissionEndTime) return (emissionEndTime - _from) / 15;
         else return (_to - _from) / 15;
     }
 
@@ -244,8 +227,8 @@ contract MasterChef is Ownable, ReentrancyGuard {
         }
 
         // The first time we reach DragonGol's max supply we solidify the end of farming.
-        if (IERC20(dgng).totalSupply() >= dgngMaximumSupply && emmissionEndTime == type(uint256).max)
-            emmissionEndTime = block.timestamp;
+        if (IERC20(dgng).totalSupply() >= dgngMaximumSupply && emissionEndTime == type(uint256).max)
+            emissionEndTime = block.timestamp;
 
         pool.accDgngPerShare = pool.accDgngPerShare + ((dgngRewardUser * 1e12) / pool.lpSupply);
         pool.lastRewardTime = block.timestamp;
@@ -331,8 +314,7 @@ contract MasterChef is Ownable, ReentrancyGuard {
         require(transferSuccess, "safeDgngTransfer: transfer failed");
     }
 
-    function setFeeAddress(address _feeAddress) external {
-        require(msg.sender == feeAddress, "setFeeAddress: FORBIDDEN");
+    function setFeeAddress(address _feeAddress) external onlyOwner {
         require(_feeAddress != address(0), "!nonzero");
         feeAddress = _feeAddress;
         emit SetFeeAddress(msg.sender, _feeAddress);
@@ -345,6 +327,18 @@ contract MasterChef is Ownable, ReentrancyGuard {
         startTime = _newStartTime;
 
         emit UpdateStartBlock(startTime);
+    }
+
+    function setDgngPerBlock(uint256 _dgngPerBlock) external onlyOwner {
+        dgngPerBlock = _dgngPerBlock;
+        emit SetDgngPerBlock(_dgngPerBlock);
+
+    }
+
+    function setEmissionEndTime(uint256 _emissionEndTime) external onlyOwner {
+        require(_emissionEndTime > block.timestamp, "Emission can not be end in the past");
+        emissionEndTime = _emissionEndTime;
+        emit SetEmissionEndTime(_emissionEndTime);
     }
 
     function massUpdatePoolDragonNests() public {
