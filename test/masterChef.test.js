@@ -227,33 +227,67 @@ describe("MasterChef", function () {
 
   describe("stakeDragonUtility", function () {
     beforeEach(async function () {
+      this.usedUtilityNFTId = 1;
+
       await this.masterChef.add(5000, this.dgng.address, 0, false);
       await this.dgng.approve(
         this.masterChef.address,
         getBigNumber(1000000000000000)
       );
       await this.dragonUtility.mintPlank("https://xxxxx");
-      await this.dragonUtility.buyDragonUtility(1);
-
-      this.usedUtilityNFTId = 1;
+      await this.dragonUtility.buyDragonUtility(this.usedUtilityNFTId);
     });
 
     it("Should stake dragon utility", async function () {
-      const dragBalanceOfUserBefore = await this.dragonUtility.balanceOf(
-        this.signers[0].address
+      const dragonUtilityOwnerBefore = await this.dragonUtility.ownerOf(
+        this.usedUtilityNFTId
       );
-      expect(dragBalanceOfUserBefore).to.be.equal(getBigNumber(1, 0));
+      expect(dragonUtilityOwnerBefore).to.be.equal(this.signers[0].address);
+
       await this.dragonUtility.approve(
         this.masterChef.address,
         this.usedUtilityNFTId
       );
       await this.masterChef.stakeDragonUtility(this.usedUtilityNFTId);
-      const dragBalanceOfUserAfter = await this.dragonUtility.balanceOf(
-        this.signers[0].address
+
+      const dragonUtilityOwnerAfter = await this.dragonUtility.ownerOf(
+        this.usedUtilityNFTId
       );
-      expect(dragBalanceOfUserAfter).to.be.equal(
-        dragBalanceOfUserBefore.sub(1)
+      expect(dragonUtilityOwnerAfter).to.be.equal(this.masterChef.address);
+    });
+  });
+
+  describe("withdrawDragonUtility", function () {
+    beforeEach(async function () {
+      this.usedUtilityNFTId = 1;
+
+      await this.masterChef.add(5000, this.dgng.address, 0, false);
+      await this.dgng.approve(
+        this.masterChef.address,
+        getBigNumber(1000000000000000)
       );
+      await this.dragonUtility.mintPlank("https://xxxxx");
+      await this.dragonUtility.buyDragonUtility(this.usedUtilityNFTId);
+    });
+
+    it("Should withdraw dragon utility", async function () {
+      await this.dragonUtility.approve(
+        this.masterChef.address,
+        this.usedUtilityNFTId
+      );
+      await this.masterChef.stakeDragonUtility(this.usedUtilityNFTId);
+
+      const dragonUtilityOwnerBefore = await this.dragonUtility.ownerOf(
+        this.usedUtilityNFTId
+      );
+      expect(dragonUtilityOwnerBefore).to.be.equal(this.masterChef.address);
+
+      await this.masterChef.withdrawDragonUtility(this.usedUtilityNFTId);
+
+      const dragonUtilityOwnerAfter = await this.dragonUtility.ownerOf(
+        this.usedUtilityNFTId
+      );
+      expect(dragonUtilityOwnerAfter).to.be.equal(this.signers[0].address);
     });
   });
 });
