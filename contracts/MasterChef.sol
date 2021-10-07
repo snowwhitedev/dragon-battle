@@ -30,10 +30,10 @@ contract MasterChef is ERC721Holder, Ownable, ReentrancyGuard {
         // We do some fancy math here. Basically, any point in time, the amount of DrgonGols
         // entitled to a user but is pending to be distributed is:
         //
-        //   pending reward = (user.amount * pool.accDgngPerShare) - user.rewardDebt
+        //   pending reward = (user.amount * pool.accDCAUPerShare) - user.rewardDebt
         //
         // Whenever a user deposits or withdraws LP tokens to a pool. Here's what happens:
-        //   1. The pool's `accDgngPerShare` (and `lastRewardTime`) gets updated.
+        //   1. The pool's `accDCAUPerShare` (and `lastRewardTime`) gets updated.
         //   2. User receives the pending reward sent to his/her address.
         //   3. User's `amount` gets updated.
         //   4. User's `rewardDebt` gets updated.
@@ -44,7 +44,7 @@ contract MasterChef is ERC721Holder, Ownable, ReentrancyGuard {
         IERC20 lpToken; // Address of LP token contract.
         uint256 allocPoint; // How many allocation points assigned to this pool. DragonGols to distribute per block.
         uint256 lastRewardTime; // Last block timestamp that DragonGols distribution occurs.
-        uint256 accDgngPerShare; // Accumulated DrgonGols per share, times 1e12. See below.
+        uint256 accDCAUPerShare; // Accumulated DrgonGols per share, times 1e12. See below.
         uint16 depositFeeBP; // Deposit fee in basis points 10000 - 100%
         uint256 lpSupply;
     }
@@ -59,11 +59,11 @@ contract MasterChef is ERC721Holder, Ownable, ReentrancyGuard {
     mapping(uint256 => address) nestSupporters; // tokenId => nest supporter;
     uint256 public nestSupportersLength;
 
-    uint256 public constant dgngMaximumSupply = 146300 * (10**18);
+    uint256 public constant dcauMaximumSupply = 146300 * (10**18);
 
     // The Dragon Gold TOKEN!
-    address public dgng;
-    uint256 public dgngPerBlock;
+    address public dcau;
+    uint256 public dcauPerBlock;
     address public immutable DRAGON_UTILITY;
     // Deposit Fee address
     address public feeAddress;
@@ -88,22 +88,22 @@ contract MasterChef is ERC721Holder, Ownable, ReentrancyGuard {
     event EmergencyWithdraw(address indexed user, uint256 indexed pid, uint256 amount);
     event SetFeeAddress(address indexed user, address indexed newAddress);
     event UpdateStartBlock(uint256 newStartBlock);
-    event SetDgngPerBlock(uint256 amount);
+    event SetDCAUPerBlock(uint256 amount);
     event SetEmissionEndTime(uint256 emissionEndTime);
 
     constructor(
-        address _dgng,
+        address _dcau,
         address _DRAGON_UTILITY,
         address _feeAddress,
         uint256 _startTime,
-        uint256 _dgngPerBlock,
+        uint256 _dcauPerBlock,
         address _devWallet
     ) {
-        dgng = _dgng;
+        dcau = _dcau;
         DRAGON_UTILITY = _DRAGON_UTILITY;
         feeAddress = _feeAddress;
         startTime = _startTime;
-        dgngPerBlock = _dgngPerBlock;
+        dcauPerBlock = _dcauPerBlock;
         devWallet = _devWallet;
     }
 
@@ -140,7 +140,7 @@ contract MasterChef is ERC721Holder, Ownable, ReentrancyGuard {
                 lpToken: _lpToken,
                 allocPoint: _allocPoint,
                 lastRewardTime: lastRewardTime,
-                accDgngPerShare: 0,
+                accDCAUPerShare: 0,
                 depositFeeBP: _depositFeeBP,
                 lpSupply: 0
             })
@@ -178,18 +178,18 @@ contract MasterChef is ERC721Holder, Ownable, ReentrancyGuard {
     }
 
     // View function to see pending DragonGols on frontend.
-    function pendingDgng(uint256 _pid, address _user) external view returns (uint256) {
+    function pendingDcau(uint256 _pid, address _user) external view returns (uint256) {
         PoolInfo storage pool = poolInfo[_pid];
         UserInfo storage user = userInfo[_pid][_user];
-        uint256 accDgngPerShare = pool.accDgngPerShare;
+        uint256 accDcauPerShare = pool.accDCAUPerShare;
         if (block.timestamp > pool.lastRewardTime && pool.lpSupply != 0) {
             uint256 multiplier = getMultiplier(pool.lastRewardTime, block.timestamp);
-            uint256 dgngReward = (multiplier * dgngPerBlock * pool.allocPoint) / totalAllocPoint;
-            uint256 dgngRewardUser = (dgngReward * 975) / 1000;
-            accDgngPerShare = accDgngPerShare + ((dgngRewardUser * 1e12) / pool.lpSupply);
+            uint256 dcauReward = (multiplier * dcauPerBlock * pool.allocPoint) / totalAllocPoint;
+            uint256 dcauRewardUser = (dcauReward * 975) / 1000;
+            accDcauPerShare = accDcauPerShare + ((dcauRewardUser * 1e12) / pool.lpSupply);
         }
 
-        return ((user.amount * accDgngPerShare) / 1e12) - user.rewardDebt;
+        return ((user.amount * accDcauPerShare) / 1e12) - user.rewardDebt;
     }
 
     // Update reward variables for all pools. Be careful of gas spending!
@@ -213,25 +213,25 @@ contract MasterChef is ERC721Holder, Ownable, ReentrancyGuard {
         }
 
         uint256 multiplier = getMultiplier(pool.lastRewardTime, block.timestamp);
-        uint256 dgngReward = (multiplier * dgngPerBlock * pool.allocPoint) / totalAllocPoint;
+        uint256 dcauReward = (multiplier * dcauPerBlock * pool.allocPoint) / totalAllocPoint;
 
         // This shouldn't happen, but just in case we stop rewards.
-        if (IERC20(dgng).totalSupply() > dgngMaximumSupply) dgngReward = 0;
-        else if ((IERC20(dgng).totalSupply() + dgngReward) > dgngMaximumSupply)
-            dgngReward = dgngMaximumSupply - IERC20(dgng).totalSupply();
+        if (IERC20(dcau).totalSupply() > dcauMaximumSupply) dcauReward = 0;
+        else if ((IERC20(dcau).totalSupply() + dcauReward) > dcauMaximumSupply)
+            dcauReward = dcauMaximumSupply - IERC20(dcau).totalSupply();
 
         // 2.5% to dev 97.5% to user
-        uint256 dgngRewardUser = (dgngReward * 975) / 1000;
-        if (dgngReward > 0) {
-            IDragonGol(dgng).mint(address(this), dgngRewardUser);
-            IDragonGol(dgng).mint(devWallet, dgngReward - dgngRewardUser);
+        uint256 dcauRewardUser = (dcauReward * 975) / 1000;
+        if (dcauReward > 0) {
+            IDragonGol(dcau).mint(address(this), dcauRewardUser);
+            IDragonGol(dcau).mint(devWallet, dcauReward - dcauRewardUser);
         }
 
         // The first time we reach DragonGol's max supply we solidify the end of farming.
-        if (IERC20(dgng).totalSupply() >= dgngMaximumSupply && emissionEndTime == type(uint256).max)
+        if (IERC20(dcau).totalSupply() >= dcauMaximumSupply && emissionEndTime == type(uint256).max)
             emissionEndTime = block.timestamp;
 
-        pool.accDgngPerShare = pool.accDgngPerShare + ((dgngRewardUser * 1e12) / pool.lpSupply);
+        pool.accDCAUPerShare = pool.accDCAUPerShare + ((dcauRewardUser * 1e12) / pool.lpSupply);
         pool.lastRewardTime = block.timestamp;
     }
 
@@ -243,9 +243,9 @@ contract MasterChef is ERC721Holder, Ownable, ReentrancyGuard {
         UserInfo storage user = userInfo[_pid][msg.sender];
         updatePool(_pid);
         if (user.amount > 0) {
-            uint256 pending = ((user.amount * pool.accDgngPerShare) / 1e12) - user.rewardDebt;
+            uint256 pending = ((user.amount * pool.accDCAUPerShare) / 1e12) - user.rewardDebt;
             if (pending > 0) {
-                safeDgngTransfer(msg.sender, pending);
+                safeDcauTransfer(msg.sender, pending);
             }
         }
 
@@ -265,7 +265,7 @@ contract MasterChef is ERC721Holder, Ownable, ReentrancyGuard {
             pool.lpSupply = pool.lpSupply + _amount;
         }
 
-        user.rewardDebt = (user.amount * pool.accDgngPerShare) / 1e12;
+        user.rewardDebt = (user.amount * pool.accDCAUPerShare) / 1e12;
 
         emit Deposit(msg.sender, _pid, _amount);
     }
@@ -276,16 +276,16 @@ contract MasterChef is ERC721Holder, Ownable, ReentrancyGuard {
         UserInfo storage user = userInfo[_pid][msg.sender];
         require(user.amount >= _amount, "Withdraw: not good");
         updatePool(_pid);
-        uint256 pending = ((user.amount * pool.accDgngPerShare) / 1e12) - user.rewardDebt;
+        uint256 pending = ((user.amount * pool.accDCAUPerShare) / 1e12) - user.rewardDebt;
         if (pending > 0) {
-            safeDgngTransfer(msg.sender, pending);
+            safeDcauTransfer(msg.sender, pending);
         }
         if (_amount > 0) {
             user.amount = user.amount - _amount;
             pool.lpToken.safeTransfer(address(msg.sender), _amount);
             pool.lpSupply = pool.lpSupply - _amount;
         }
-        user.rewardDebt = (user.amount * pool.accDgngPerShare) / 1e12;
+        user.rewardDebt = (user.amount * pool.accDCAUPerShare) / 1e12;
         emit Withdraw(msg.sender, _pid, _amount);
     }
 
@@ -305,16 +305,16 @@ contract MasterChef is ERC721Holder, Ownable, ReentrancyGuard {
         emit EmergencyWithdraw(msg.sender, _pid, amount);
     }
 
-    // Safe DGNG transfer function, just in case if rounding error causes pool to not have enough DGNGs.
-    function safeDgngTransfer(address _to, uint256 _amount) internal {
-        uint256 dgngBal = IERC20(dgng).balanceOf(address(this));
+    // Safe DCAU transfer function, just in case if rounding error causes pool to not have enough DCAUs.
+    function safeDcauTransfer(address _to, uint256 _amount) internal {
+        uint256 dcauBal = IERC20(dcau).balanceOf(address(this));
         bool transferSuccess = false;
-        if (_amount > dgngBal) {
-            transferSuccess = IERC20(dgng).transfer(_to, dgngBal);
+        if (_amount > dcauBal) {
+            transferSuccess = IERC20(dcau).transfer(_to, dcauBal);
         } else {
-            transferSuccess = IERC20(dgng).transfer(_to, _amount);
+            transferSuccess = IERC20(dcau).transfer(_to, _amount);
         }
-        require(transferSuccess, "safeDgngTransfer: transfer failed");
+        require(transferSuccess, "safeDcauTransfer: transfer failed");
     }
 
     function setFeeAddress(address _feeAddress) external onlyOwner {
@@ -332,9 +332,9 @@ contract MasterChef is ERC721Holder, Ownable, ReentrancyGuard {
         emit UpdateStartBlock(startTime);
     }
 
-    function setDgngPerBlock(uint256 _dgngPerBlock) external onlyOwner {
-        dgngPerBlock = _dgngPerBlock;
-        emit SetDgngPerBlock(_dgngPerBlock);
+    function setDcauPerBlock(uint256 _dcauPerBlock) external onlyOwner {
+        dcauPerBlock = _dcauPerBlock;
+        emit SetDCAUPerBlock(_dcauPerBlock);
     }
 
     function setEmissionEndTime(uint256 _emissionEndTime) external onlyOwner {
