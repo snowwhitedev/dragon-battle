@@ -121,6 +121,45 @@ async function createPair(
   return pair;
 }
 
+async function createPairETH(
+  router,
+  factory,
+  token0,
+  amount0,
+  amount1,
+  to,
+  signer
+) {
+  const deadline = new Date().getTime();
+  const routerContract = getContract(router, JSON.stringify(UniswapV2Router));
+  const factoryContract = getContract(
+    factory,
+    JSON.stringify(UniswapV2Factory)
+  );
+  const token0Contract = getContract(token0, JSON.stringify(ERC20));
+
+  console.log("Approving router to consume tokens...");
+  await (
+    await token0Contract
+      .connect(signer)
+      .approve(router, getBigNumber(10000000000), { from: signer.address })
+  ).wait();
+  console.log("Approved.");
+
+  console.log("Addding liquidity...");
+  await (
+    await routerContract
+      .connect(signer)
+      .addLiquidityETH(token0, amount0, amount0, amount1, to, deadline, {
+        value: amount1,
+      })
+  ).wait();
+
+  const pair = await factoryContract.getPair(token0, token1);
+
+  return pair;
+}
+
 function getBigNumber(amount, decimal = 18) {
   return BigNumber.from(amount).mul(BigNumber.from(10).pow(decimal));
 }
@@ -144,4 +183,5 @@ module.exports = {
   advanceBlock,
   advanceBlockTo,
   createPair,
+  createPairETH,
 };

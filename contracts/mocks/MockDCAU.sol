@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract MockDGNG is ERC20("Dragon Crypto Aurum", "DACU"), Ownable {
+contract MockDCAU is ERC20("Dragon Crypto Aurum", "DACU"), Ownable {
     uint256 private _initialMint = 46300 * (10**18);
     uint256 private _limitAmount = 146300 * (10**18);
 
