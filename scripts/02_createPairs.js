@@ -1,9 +1,14 @@
 const fs = require("fs");
 const { ethers } = require("hardhat");
 const hre = require("hardhat");
-const { createPair, createPairETH, getContract, getBigNumber } = require("./shared");
+const {
+  createPair,
+  createPairETH,
+  getContract,
+  getBigNumber,
+} = require("./shared");
 const UniswapV2Router = require("./abis/UniswapV2Router.json");
-const DeployedTokens = require('./args/tokens_dev.json');
+const DeployedTokens = require("./args/tokens_dev.json");
 
 require("dotenv").config();
 
@@ -22,16 +27,15 @@ async function main() {
   );
   const signers = await ethers.getSigners();
   const alice = signers[0];
-  
+
   const routerContract = getContract(ROUTER_ADDRESS, UniswapV2Router);
   const factory = await routerContract.factory();
 
-  console.log('[factory]', factory);
+  console.log("[factory]", factory);
   // Deploying DCAU on testnet...
-  
 
   // creating dcau_usdc pair...
-  console.log('creating dcau_usdc pair...')
+  console.log("creating dcau_usdc pair...");
   const dcau_usdc = await createPair(
     ROUTER_ADDRESS,
     FACTORY_ADDRESS,
@@ -44,7 +48,7 @@ async function main() {
   );
 
   // creating dcau_weth pair
-  console.log('creating dcau_weth pair...');
+  console.log("creating dcau_weth pair...");
   const dcau_weth = await createPairETH(
     ROUTER_ADDRESS,
     FACTORY_ADDRESS,

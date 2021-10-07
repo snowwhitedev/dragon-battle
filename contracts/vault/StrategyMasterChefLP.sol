@@ -13,7 +13,7 @@ contract StrategyMasterChefLP is BaseStrategyLPSingle {
     using SafeERC20 for IERC20;
 
     address public masterchefAddress;
-    uint256 public pid;
+    uint256 public pid; // MasterChef pool id
 
     constructor(
         address _vaultChefAddress,

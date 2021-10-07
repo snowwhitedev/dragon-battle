@@ -185,5 +185,5 @@ module.exports = {
   advanceBlockTo,
   createPair,
   createPairETH,
-  getContract
+  getContract,
 };

@@ -1,4 +1,4 @@
-DGNG (0% deposit) (50X multiplier) (also an auto compounding vault)
+DGNG (0% deposit) (50X multiplier) (also an auto compounding vault) 100 - 1point
 WETH (4% deposit) (5X multiplier)
 WBTC (4% deposit) (5X multiplier)
 WMATIC (4% deposit) (5X multiplier)
@@ -27,3 +27,18 @@ deploying "MasterChef" (tx: 0x09cd66c3e3861f770283877842fd892d6427c2aecaf3613fb5
   deployed at 0xE21a3A7fB4fF125A55ff75e93F70a49C491F0Ca3 with 2537477 gas
 deploying "VaultChef" (tx: 0xeb92504d64b58c21dd8cb8a379f514e64b8e037afb5e8feddc4e2df7de7e15f6)...:
   deployed at 0x2f868bC458f578958525B2780A0a3a713ee1270E with 1617559 gas
+
+Added MasterChef Pools
+- DCAU 0xaba6D7b5515f70402bFb2633B5446670B996c10b
+- USDC 0xF143436dE21a03c50267dBf64F2B7D6d14dEeA0F
+- dcau_weth (on Polygon it is dcau_wmatic) 0xa07658062c12a0fcf378f5c47aa7fd6a54d76588 [dcau, weth]
+- dcau_usdc 0x35fd7926b4b8fde82c6218281db182b5fd452603 [dcau, usdc]
+
+VaultChef
+ - Strategies
+   StrategyMasterChef DCAU  deployed at 0xB4cdf8B50abdc6124d8b1ec5ad32ea54e3F9924D with 2544299 gas
+   StrategyMasterChef USDC deployed at 0x6748911dF8B7513A108454eea205A2127F5B114E with 2566665 gas - wrong
+   StrategyMasterChef USDC deployed at 0xaba66801a23458F6Ff888c03E0453b747c1fA61B with 2566665 gas
+
+   StrategyMasterChefLP dcau_weth deployed at 0x76082694bD7d0863cbFe30c7060e99799D2bd3d9 with 3212545 gas
+   StrategyMasterChefLP dcau_usdc deployed at 0x018C7C09e19b569998C75eb80e7EB8C9009D9208 with 3213225 gas
