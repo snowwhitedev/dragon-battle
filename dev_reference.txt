@@ -15,3 +15,7 @@ DGNG/WMATIC (0% deposit) (100X multiplier) (also an auto compounding vault)
 DGNG/USDC (0% deposit) (100X multiplier) (also an auto compounding vault)
 DAI/USDC (4% deposit) (10X multiplier)
 POLYPUP BALL/USDC (3% deposit) (15X multiplier)
+
+
+-- Front end and Smart contract deployment --
+Currently we are going to deploy smart contract on rinkeby and will do smart contract integration on rinkeby.

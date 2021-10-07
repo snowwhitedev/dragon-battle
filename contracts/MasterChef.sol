@@ -42,7 +42,7 @@ contract MasterChef is ERC721Holder, Ownable, ReentrancyGuard {
     // Info of each pool.
     struct PoolInfo {
         IERC20 lpToken; // Address of LP token contract.
-        uint256 allocPoint; // How many allocation points assigned to this pool. DragonGols to distribute per block.
+        uint256 allocPoint; // How many allocation points assigned to this pool. DragonGols to distribute per block. 100 - 1point
         uint256 lastRewardTime; // Last block timestamp that DragonGols distribution occurs.
         uint256 accDCAUPerShare; // Accumulated DrgonGols per share, times 1e12. See below.
         uint16 depositFeeBP; // Deposit fee in basis points 10000 - 100%
