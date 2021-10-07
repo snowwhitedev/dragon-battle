@@ -19,3 +19,11 @@ POLYPUP BALL/USDC (3% deposit) (15X multiplier)
 
 -- Front end and Smart contract deployment --
 Currently we are going to deploy smart contract on rinkeby and will do smart contract integration on rinkeby.
+
+=== Rinkeby deployment ===
+deploying "DragonUtility" (tx: 0x6718da9e763bfc8dc263e63012f4a33cea19a58b15125d0f3458e71498864971)...: 
+  deployed at 0x66A8a6Ab9778D8A2D8bB5D28c7319c246262677A with 1860612 gas
+deploying "MasterChef" (tx: 0x09cd66c3e3861f770283877842fd892d6427c2aecaf3613fb5ef8f1eb04c2ee3)...: 
+  deployed at 0xE21a3A7fB4fF125A55ff75e93F70a49C491F0Ca3 with 2537477 gas
+deploying "VaultChef" (tx: 0xeb92504d64b58c21dd8cb8a379f514e64b8e037afb5e8feddc4e2df7de7e15f6)...:
+  deployed at 0x2f868bC458f578958525B2780A0a3a713ee1270E with 1617559 gas

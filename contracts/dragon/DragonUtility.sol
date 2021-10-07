@@ -31,7 +31,7 @@ contract DragonUtility is ERC721URIStorage, Ownable, ReentrancyGuard {
         return _itemCost;
     }
 
-    function mintPlank(string memory tokenURI) external onlyOwner returns (uint256) {
+    function mintUtility(string memory tokenURI) external onlyOwner returns (uint256) {
         require(_tokenIds.current() < 25, "All tokens have been minted");
 
         _tokenIds.increment();

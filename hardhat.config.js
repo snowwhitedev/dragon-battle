@@ -64,8 +64,25 @@ module.exports = {
     //   gasPrice: parseInt(utils.parseUnits("50", "gwei")),
     // },
     hardhat: {
-      gasPrice: parseInt(utils.parseUnits("50", "gwei")),
+      hardfork: "london",
+      allowUnlimitedContractSize: true,
+      settings: {
+        optimizer: {
+          enabled: true,
+          runs: 9999,
+        },
+      },
+      evmVersion: "byzantium",
+      forking: {
+        url: 'https://eth-rinkeby.alchemyapi.io/v2/8SAQa7xMc0VXTR_hyfPvAt2pe3QrXybB',
+        enabled: true,
+        // blockNumber: 7041459 //6430278 //7041458 //6615559 10207859 11869355        
+      },
+      gasPrice: "auto",
     },
+    // hardhat: {
+    //   gasPrice: parseInt(utils.parseUnits("50", "gwei")),
+    // },
     mainnet: {
       url: `https://mainnet.infura.io/v3/${process.env.INFURA_KEY}`,
       accounts,

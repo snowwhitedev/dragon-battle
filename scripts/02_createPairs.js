@@ -1,45 +1,42 @@
 const fs = require("fs");
 const { ethers } = require("hardhat");
 const hre = require("hardhat");
-const { createPair, createPairETH } = require("./shared");
+const { createPair, createPairETH, getContract, getBigNumber } = require("./shared");
+const UniswapV2Router = require("./abis/UniswapV2Router.json");
+const DeployedTokens = require('./args/tokens_dev.json');
 
 require("dotenv").config();
 
-const ROUTER_ADDRESS = "0x2D99ABD9008Dc933ff5c0CD271B88309593aB921"; // avalanche fuji
-const FACTORY_ADDRESS = "0xE4A575550C2b460d2307b82dCd7aFe84AD1484dd"; // avalanche fuji
+// const ROUTER_ADDRESS = "0x2D99ABD9008Dc933ff5c0CD271B88309593aB921"; // avalanche fuji
+// const FACTORY_ADDRESS = "0xE4A575550C2b460d2307b82dCd7aFe84AD1484dd"; // avalanche fuji
+
+const ROUTER_ADDRESS = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"; // avalanche fuji
+const FACTORY_ADDRESS = "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f"; // avalanche fuji
 
 /**
  * This script is only for testnet, don't use it on mainnet
  */
 async function main() {
   console.log(
-    "Preparing ERC20 tokens and Writing result in scripts/args/tokens_dev.json..."
+    "Preparing liquidity pairs and Writing result in scripts/args/pairs_dev.json..."
   );
   const signers = await ethers.getSigners();
   const alice = signers[0];
+  
+  const routerContract = getContract(ROUTER_ADDRESS, UniswapV2Router);
+  const factory = await routerContract.factory();
 
+  console.log('[factory]', factory);
   // Deploying DCAU on testnet...
-  console.log("Deploying DCAU...");
-  const DCAUToken = await hre.ethers.getContractFactory("MockDCAU");
-  const dcauToken = await DCAUToken.deploy();
-  await dcauToken.deployed();
-  console.log("Deployed DCAU");
-
-  // Deploying USDC, Link
-  console.log("Deploying USDC, Link...");
-  const MockERC20 = await hre.ethers.getContractFactory("MockERC20");
-  const usdcToken = await MockERC20.deploy();
-  const linkToken = await MockERC20.deploy();
-  await usdcToken.deployed();
-  await linkToken.deployed();
-  console.log("Deployed USDC, Link");
+  
 
   // creating dcau_usdc pair...
-  const DCAU_USDC = await createPair(
+  console.log('creating dcau_usdc pair...')
+  const dcau_usdc = await createPair(
     ROUTER_ADDRESS,
     FACTORY_ADDRESS,
-    dcauToken.address,
-    usdcToken.address,
+    DeployedTokens.dcau,
+    DeployedTokens.usdc,
     getBigNumber(10000),
     getBigNumber(50000),
     alice.address,
@@ -47,10 +44,11 @@ async function main() {
   );
 
   // creating dcau_weth pair
-  const DCAU_WETH = await createPairETH(
+  console.log('creating dcau_weth pair...');
+  const dcau_weth = await createPairETH(
     ROUTER_ADDRESS,
     FACTORY_ADDRESS,
-    dcauToken.address,
+    DeployedTokens.dcau,
     getBigNumber(10000),
     getBigNumber(5),
     alice.address,
@@ -58,14 +56,12 @@ async function main() {
   );
 
   const content = {
-    dcau: dcauToken.address,
-    usdc: usdcToken.address,
-    dcau_usdc: DCAU_USDC,
+    dcau_usdc: dcau_usdc,
     dcau_weth: dcau_weth,
   };
 
   await fs.writeFileSync(
-    "./scripts/args/development.json",
+    "./scripts/args/pairs_dev.json",
     JSON.stringify(content),
     { flag: "w+" }
   );
