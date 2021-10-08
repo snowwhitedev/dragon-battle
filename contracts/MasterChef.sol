@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -18,7 +19,7 @@ import "hardhat/console.sol";
 // distributed and the community can show to govern itself.
 //
 // Have fun reading it. Hopefully it's bug-free. God bless.
-contract MasterChef is Ownable, ReentrancyGuard {
+contract MasterChef is ERC721Holder, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     // Info of each user.
@@ -41,7 +42,7 @@ contract MasterChef is Ownable, ReentrancyGuard {
     // Info of each pool.
     struct PoolInfo {
         IERC20 lpToken; // Address of LP token contract.
-        uint256 allocPoint; // How many allocation points assigned to this pool. DragonGols to distribute per block.
+        uint256 allocPoint; // How many allocation points assigned to this pool. DragonGols to distribute per block. 100 - 1point
         uint256 lastRewardTime; // Last block timestamp that DragonGols distribution occurs.
         uint256 accDCAUPerShare; // Accumulated DrgonGols per share, times 1e12. See below.
         uint16 depositFeeBP; // Deposit fee in basis points 10000 - 100%
