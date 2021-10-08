@@ -101,7 +101,7 @@ contract VaultChef is Ownable, ReentrancyGuard, Operators {
     }
 
     // For unique contract calls
-    function withdraw(
+    function withdrawTo(
         uint256 _pid,
         uint256 _wantAmt,
         address _to

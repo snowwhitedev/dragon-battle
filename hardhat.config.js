@@ -47,24 +47,7 @@ module.exports = {
     },
   },
   networks: {
-    // hardhat: {
-    //   allowUnlimitedContractSize: true,
-    //   settings: {
-    //     optimizer: {
-    //       enabled: true,
-    //       runs: 9999,
-    //     },
-    //   },
-    //   forking: {
-    //     url: "https://polygon-mainnet.g.alchemy.com/v2/YH7aKkMfvT_Mq0qYZOPGdsr0dM0GC4xe",
-    //     enabled: true,
-    //     // blockNumber: 18899628,
-    //     blockNumber: 5931780,
-    //   },
-    //   gasPrice: parseInt(utils.parseUnits("50", "gwei")),
-    // },
     hardhat: {
-      hardfork: "london",
       allowUnlimitedContractSize: true,
       settings: {
         optimizer: {
@@ -72,14 +55,31 @@ module.exports = {
           runs: 9999,
         },
       },
-      evmVersion: "byzantium",
       forking: {
-        url: "https://eth-rinkeby.alchemyapi.io/v2/8SAQa7xMc0VXTR_hyfPvAt2pe3QrXybB",
+        url: "https://polygon-mainnet.g.alchemy.com/v2/YH7aKkMfvT_Mq0qYZOPGdsr0dM0GC4xe",
         enabled: true,
-        // blockNumber: 7041459 //6430278 //7041458 //6615559 10207859 11869355
+        // blockNumber: 18899628,
+        blockNumber: 5931780,
       },
-      gasPrice: "auto",
+      gasPrice: parseInt(utils.parseUnits("50", "gwei")),
     },
+    // hardhat: {
+    //   hardfork: "london",
+    //   allowUnlimitedContractSize: true,
+    //   settings: {
+    //     optimizer: {
+    //       enabled: true,
+    //       runs: 9999,
+    //     },
+    //   },
+    //   evmVersion: "byzantium",
+    //   forking: {
+    //     url: "https://eth-rinkeby.alchemyapi.io/v2/8SAQa7xMc0VXTR_hyfPvAt2pe3QrXybB",
+    //     enabled: true,
+    //     // blockNumber: 7041459 //6430278 //7041458 //6615559 10207859 11869355
+    //   },
+    //   gasPrice: "auto",
+    // },
     // hardhat: {
     //   gasPrice: parseInt(utils.parseUnits("50", "gwei")),
     // },
