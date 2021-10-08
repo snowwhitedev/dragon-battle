@@ -15,7 +15,7 @@ describe("Vault", function () {
     this.VaultChef = await ethers.getContractFactory("VaultChef");
     this.MasterChef = await ethers.getContractFactory("MasterChef");
     this.DragonUtility = await ethers.getContractFactory("DragonUtility");
-    this.MockDGNG = await ethers.getContractFactory("MockDGNG");
+    this.MockDGNG = await ethers.getContractFactory("MockDCAU");
     this.MockERC20 = await ethers.getContractFactory("MockERC20");
     this.StrategyMasterChef = await ethers.getContractFactory(
       "StrategyMasterChef"

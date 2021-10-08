@@ -48,7 +48,7 @@ describe("MasterChef", function () {
     this.masterChef = await this.MasterChef.deploy(
       this.dcau.address,
       this.dragonUtility.address,
-      this.bob.address,
+      this.dev.address,
       0,
       DCAU_PER_BLOCK, // 0.05 DCAU
       this.devWallet.address
@@ -124,7 +124,7 @@ describe("MasterChef", function () {
 
       const pendingDCAU = await this.masterChef.pendingDcau(
         0,
-        this.signers[0].address
+        this.alice.address
       );
 
       expect(expectedDCAU).to.be.equal(pendingDCAU);
@@ -165,9 +165,7 @@ describe("MasterChef", function () {
       const depositLog = await this.masterChef.deposit(0, getBigNumber(1000));
 
       await advanceBlock();
-      const dcauBalanceBefore = await this.dcau.balanceOf(
-        this.signers[0].address
-      );
+      const dcauBalanceBefore = await this.dcau.balanceOf(this.alice.address);
       await advanceBlock();
       const withdrawLog = await this.masterChef.withdraw(0, 0);
 
@@ -180,9 +178,7 @@ describe("MasterChef", function () {
         .mul(975)
         .div(1000);
 
-      const dcauBalanceAfter = await this.dcau.balanceOf(
-        this.signers[0].address
-      );
+      const dcauBalanceAfter = await this.dcau.balanceOf(this.alice.address);
 
       expect(expectedDCAU.add(dcauBalanceBefore)).to.be.equal(dcauBalanceAfter);
     });
@@ -202,23 +198,21 @@ describe("MasterChef", function () {
       const depositLog = await this.masterChef.deposit(0, getBigNumber(1000));
 
       await advanceBlock();
-      const dcauBalanceBefore = await this.dcau.balanceOf(
-        this.signers[0].address
-      );
+      const dcauBalanceBefore = await this.dcau.balanceOf(this.alice.address);
       await advanceBlock();
 
       const userInfoBefore = await this.masterChef.userInfo(
         0,
-        this.signers[0].address
+        this.alice.address
       );
       // const withdrawLog = await this.masterChef.emergencyWithdraw(0);
       await expect(this.masterChef.emergencyWithdraw(0))
         .to.emit(this.masterChef, "EmergencyWithdraw")
-        .withArgs(this.signers[0].address, 0, userInfoBefore.amount);
+        .withArgs(this.alice.address, 0, userInfoBefore.amount);
 
       const userInfoAfter = await this.masterChef.userInfo(
         0,
-        this.signers[0].address
+        this.alice.address
       );
       expect(userInfoAfter.amount).to.be.equal(0);
       expect(userInfoAfter.rewardDebt).to.be.equal(0);
@@ -234,7 +228,7 @@ describe("MasterChef", function () {
         this.masterChef.address,
         getBigNumber(1000000000000000)
       );
-      await this.dragonUtility.mintPlank("https://xxxxx");
+      await this.dragonUtility.mintUtility("https://xxxxx");
       await this.dragonUtility.buyDragonUtility(this.usedUtilityNFTId);
     });
 
@@ -242,7 +236,7 @@ describe("MasterChef", function () {
       const dragonUtilityOwnerBefore = await this.dragonUtility.ownerOf(
         this.usedUtilityNFTId
       );
-      expect(dragonUtilityOwnerBefore).to.be.equal(this.signers[0].address);
+      expect(dragonUtilityOwnerBefore).to.be.equal(this.alice.address);
 
       await this.dragonUtility.approve(
         this.masterChef.address,
@@ -270,28 +264,24 @@ describe("MasterChef", function () {
       );
       await this.masterChef.deposit(0, getBigNumber(5000));
 
-      await this.dcau.transfer(this.signers[1].address, getBigNumber(10000));
+      await this.dcau.transfer(this.bob.address, getBigNumber(10000));
 
       await this.dcau
-        .connect(this.signers[1])
+        .connect(this.bob)
         .approve(this.masterChef.address, getBigNumber(5000));
-      await this.masterChef
-        .connect(this.signers[1])
-        .deposit(0, getBigNumber(5000));
+      await this.masterChef.connect(this.bob).deposit(0, getBigNumber(5000));
 
       await this.usdc.approve(this.masterChef.address, getBigNumber(100000000));
       await this.masterChef.deposit(1, getBigNumber(2000));
 
-      await this.usdc.transfer(this.signers[1].address, getBigNumber(10000));
+      await this.usdc.transfer(this.bob.address, getBigNumber(10000));
 
       await this.usdc
-        .connect(this.signers[1])
+        .connect(this.bob)
         .approve(this.masterChef.address, getBigNumber(2000));
-      await this.masterChef
-        .connect(this.signers[1])
-        .deposit(1, getBigNumber(2000));
+      await this.masterChef.connect(this.bob).deposit(1, getBigNumber(2000));
 
-      await this.dragonUtility.mintPlank("https://xxxxx");
+      await this.dragonUtility.mintUtility("https://xxxxx");
       await this.dragonUtility.buyDragonUtility(this.usedUtilityNFTId);
       await this.dragonUtility.approve(
         this.masterChef.address,
@@ -313,7 +303,7 @@ describe("MasterChef", function () {
       for (let i = 0; i < poolLen; i++) {
         const poolInfo = await this.masterChef.poolInfo(i);
         const lpToken = await this.MockERC20.attach(poolInfo.lpToken);
-        const balanceBefore = await lpToken.balanceOf(this.signers[0].address);
+        const balanceBefore = await lpToken.balanceOf(this.alice.address);
         poolInfoBefore.push({ balanceBefore });
       }
 
@@ -322,7 +312,7 @@ describe("MasterChef", function () {
       for (let i = 0; i < poolLen; i++) {
         const poolInfo = await this.masterChef.poolInfo(i);
         const lpToken = await this.MockERC20.attach(poolInfo.lpToken);
-        const balanceAfter = await lpToken.balanceOf(this.signers[0].address);
+        const balanceAfter = await lpToken.balanceOf(this.alice.address);
         const poolDragonNestInfo = await this.masterChef.poolDragonNestInfo(i);
         const dragonNestInfo = await this.masterChef.dragonNestInfo(i, 1);
 
@@ -346,7 +336,7 @@ describe("MasterChef", function () {
       const dragonUtilityOwnerAfter = await this.dragonUtility.ownerOf(
         this.usedUtilityNFTId
       );
-      expect(dragonUtilityOwnerAfter).to.be.equal(this.signers[0].address);
+      expect(dragonUtilityOwnerAfter).to.be.equal(this.alice.address);
     });
 
     it("updatePoolDragonNest -1", async function () {
