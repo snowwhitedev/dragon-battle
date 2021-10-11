@@ -48,8 +48,8 @@ const QUICK_SWAP = {
   FACTORY: "0x5757371414417b8C6CAad45bAeF941aBc7d3Ab32",
 };
 
-// const WETH = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270"; // on polygon
-const WETH = "0xc778417e063141139fce010982780140aa0cd5ab "; // on rinkeby
+const WETH = "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270"; // on polygon
+// const WETH = "0xc778417e063141139fce010982780140aa0cd5ab "; // on rinkeby
 
 const UniswapV2Router = require("./abis/UniswapV2Router.json");
 const UniswapV2Factory = require("./abis/UniswapV2Factory.json");
@@ -113,7 +113,8 @@ async function createPair(
         amount0,
         amount1,
         to,
-        deadline
+        deadline,
+        { from: signer.address }
       )
   ).wait();
 
